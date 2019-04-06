@@ -1,5 +1,8 @@
 #!/usr/bin/env awk
+@include "itl_map.awk"
 
+# Create the attr variable using values in the itl_map array.
+# This gets printed in the END block.
 function mapper(check, flag) {
     attr = sprintf("vars.%s = ", itl_map[check][flag])
     if (typeof(commands[check][flag]) == "string") {
@@ -25,21 +28,7 @@ function array_walk(arr, name, map, command,    check) {
     }
 }
 
-BEGIN {
-    itl_map["check_http"]["-H"] = "http_address"
-    itl_map["check_http"]["-I"] = "http_vhost"
-    itl_map["check_http"]["-w"] = "http_warn"
-    itl_map["check_http"]["-c"] = "http_crit"
-    itl_map["check_http"]["-s"] = "http_ssl"
-    itl_map["check_snmp"]["-H"] = "snmp_host"
-    itl_map["check_snmp"]["-C"] = "snmp_community"
-    itl_map["check_snmp"]["-o"] = "snmp_oid"
-    itl_map["check_snmp"]["-w"] = "snmp_warn"
-    itl_map["check_snmp"]["-c"] = "snmp_crit"
-    helper_array[1] = "\n"
-}
-
-$1 ~ /[^#]command_line/ {
+$1 ~ /^command_line/ {  
     cmd = $2
     for (i=3; i <= NF; i++) {
         if ($i ~ /-.{1}/) {
@@ -53,10 +42,8 @@ $1 ~ /[^#]command_line/ {
     #print cmd ":"
     commands[cmd]["name"] = cmd
     for (x in arg) {
-        #print "    " x ": " arg[x]
         # Build an array of arrays to contain each command and its args
         commands[cmd][x] = arg[x]
-        # This also means I don't have to worry about multiple defs in one file.
     }
     delete arg
     original[NR] = $0
@@ -65,7 +52,7 @@ $1 ~ /[^#]command_line/ {
 END {
     printf "Commands from %s seem to be defined in this way: \n", FILENAME
     array_walk(commands, "commands", "mapper")
-    print "\n/* Original command line(s): "
+    print "\n/* Original command definition(s): "
     for (line in original) { print " * " original[line] }
     print " */"
 }
