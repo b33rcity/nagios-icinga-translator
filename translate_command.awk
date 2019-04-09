@@ -6,7 +6,13 @@
 function mapper(check, flag) {
     attr = sprintf("vars.%s = ", itl_map[check][flag])
     if (typeof(commands[check][flag]) == "string") {
-        attr = attr "\"" commands[check][flag] "\""
+        # Don't quote bool or pre-quoted values
+        if (commands[check][flag] == "true" || commands[check][flag] ~ /^".*"$/) {
+            attr = attr commands[check][flag] 
+        # Quote everything else
+        } else {
+            attr = attr "\"" commands[check][flag] "\""
+        }
     } else {
         attr = attr commands[check][flag]
     }
@@ -31,15 +37,35 @@ function array_walk(arr, name, map, command,    check) {
 $1 ~ /^command_line/ {  
     cmd = $2
     for (i=3; i <= NF; i++) {
-        if ($i ~ /-.{1}/) {
-            if ($(i+1) !~ /-.{1}/) {
+        # Match -X options
+        if ($i ~ /^-[^- ]/) {
+            if ($(i+1) !~ /^-.+/) {
                 arg[$i] = $(i+1)
             } else {
                 arg[$i] = "true"
             }
+        # Match --word options (true/false type)
+        } else if ($i ~ /^--[^ =]+$/) {
+            arg[$i] = "true"
+        # Match --word="xyz" and --word=123 options
+        } else if ($i ~ /^--[^ =]+=.+/) {
+            # cat fields that were split inside a quote
+            if ($i ~ /[^"]*"[^"]+$/) {
+                opt = $i " " $(i+1)
+            } else {
+                opt = $i
+            }
+            split(opt, val, "=")
+            # Strip surrounding quotes (strings get quoted later)
+           #if (val[2] ~ /"[^"]*"/) {
+           #    arg[val[1]] = substr(val[2], 2, length(val[2]-1))
+           #} else { 
+           #    arg[val[1]] = val[2]
+           #}
+            arg[val[1]] = val[2]
+        #(("[^"]+")|([^ ]+))$
         }
     }
-    #print cmd ":"
     commands[cmd]["name"] = cmd
     for (x in arg) {
         # Build an array of arrays to contain each command and its args

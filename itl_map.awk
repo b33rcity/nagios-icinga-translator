@@ -62,7 +62,7 @@ BEGINFILE {
     itl_map["check_http"]["-H"] = "http_vhost"
     itl_map["check_http"]["-w"] = "http_warn_time"	    	    
     itl_map["check_http"]["-c"] = "http_crit_time"
-    itl_map["check_http"]["-s"] = "http_ssl"
+    itl_map["check_http"]["-S"] = "http_ssl"
     itl_map["check_http"]["-u"] = "http_uri"
     itl_map["check_http"]["-p"] = "http_port"
     itl_map["check_http"]["--sni"] = "http_sni"
@@ -274,7 +274,7 @@ BEGINFILE {
     itl_map["check_smtp"]["-4"] = "smtp_ipv4"
     itl_map["check_smtp"]["-6"] = "smtp_ipv6"
 
-    itl_map["check_snmp"]["-C"] = "snmp_address"
+    itl_map["check_snmp"]["-H"] = "snmp_address"
     itl_map["check_snmp"]["-o"] = "snmp_oid"
     itl_map["check_snmp"]["-C"] = "snmp_community"
     itl_map["check_snmp"]["-p"] = "snmp_port"
