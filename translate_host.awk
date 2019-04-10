@@ -1,15 +1,36 @@
 #!/usr/bin/env awk
 
-# First attempt to generalize the parsing of check_command
 function split_args(command) {
     split(command, params, "!")
-    for (i = 1; i < length(params); i++) {
-        split(params[i], vals, ",")
+    check = params[1]
+    for (i=2; i <= length(params); i++) {
+        arg[i-1] = params[i]
     }
-}
-
-BEGIN {
-    attribute = "    vars.%s = %s"
+    start_check = 0 
+    while ((getline < "./translated_cmd.txt") > 0) {
+        if ($1 == "###" && $2 == check) {
+            start_check = 1
+        } else if ($1 == "###" && $2 != check) {
+            start_check = 0
+        }
+        if (start_check == 1) { 
+            switch($3) {
+                case /ARG[[:digit:]]+/:
+                    # Turn eg $ARG1$ into 1
+                    match($3, /[[:digit:]]+/, arg_num)
+                    idx = check arg_num[0]
+                    attribute[idx] = $1 " " $2 " " arg[arg_num[0]]
+                    continue
+                case /true/:
+                    idx = check "!" $1
+                    attribute[idx] = $1 " " $2 " true"
+                    continue
+            }
+        }
+    }
+    for (x in attribute) {
+        print "    " attribute[x]
+    }
 }
 
 $1 == "define" {
@@ -65,7 +86,14 @@ type == "Service" {
             original[NR] = $0
             next
         case /check_command/:
-            svc_check = $2
+            svc_check = ""
+            for (f=2; f <= NF; f++) {
+                if (f==2) {
+                    svc_check = svc_check $f
+                } else {
+                    svc_check = svc_check " " $f
+                }
+            }
             original[NR] = $0
             next
         case /event_handler/:
@@ -99,38 +127,8 @@ END {
     if (groups) {
         print "groups += " hst_groups
     }
-    print "\n// I think this host needs these service attributes:"
-    split(svc_check, cmd, "!")
-    if (cmd[1] ~ /.*disk/) {
-        for (i = 2; i <= length(cmd); i++) {
-            if (cmd[i] ~ /\/[a-zA-Z\/]*/) {
-                split(cmd[i], parts, ",")
-                if (length(parts) > 1) {
-                    sep = "\", "
-                    joined = "[ \""
-                    for (part = 1; part <= length(parts); part++) {
-                        joined = joined parts[part] sep
-                    }
-                    partitions = joined "]"
-                } else {
-                    partitions = "\"" parts[1] "\""
-                }
-            }
-            if (cmd[i] ~ /.*,[^,]*/) {
-                split(cmd[i], wct, ",")
-                warn = wct[1]
-                crit = wct[2]
-            }
-            #out_arr[out_line] = sprintf(attribute, disk_attr[i], "\"" cmd[i] "\"")
-        }
-        printf(attribute, "disk_wfree", warn)
-        print ""
-        printf(attribute, "disk_cfree", crit)
-        print ""
-        printf(attribute, "disk_partitions", partitions)
-        print ""
-    }
-    print blah
+    print "\n    // I think this host needs these service attributes:"
+    split_args(svc_check)
     print "\n/* Original cfg follows:\n *"
     for (i in original) {
         print " * " original[i]

@@ -1,0 +1,19 @@
+Commands from sample_command.cfg seem to be defined in this way: 
+### check_http
+vars.http_vhost = "$HOSTADDRESS$"
+vars.http_address = "$ARG1$"
+vars.http_crit_time = "$ARG3$"
+vars.http_invertregex = "$ARG4$"
+vars.http_warn_time = "$ARG2$"
+vars.http_ssl = true
+### check_snmp
+vars.snmp_address = "$HOSTADDRESS$"
+vars.snmp_oid = "$ARG5$"
+vars.snmp_crit = "$ARG4$"
+vars.snmp_community = "$ARG2$"
+vars.snmp_warn = "$ARG3$"
+
+/* Original command definition(s): 
+ *     command_line    check_http -H $HOSTADDRESS$ -I $ARG1$ --invert-regex=$ARG4$ -S -w $ARG2$ -c $ARG3$
+ *     command_line    check_snmp -H $HOSTADDRESS$ -C $ARG2$ -w $ARG3$ -c $ARG4$ -o $ARG5$
+ */

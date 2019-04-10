@@ -25,6 +25,7 @@ function array_walk(arr, name, map, command,    check) {
     for (element in arr) {
         if (isarray(arr[element])) {
             check = arr[element]["name"]
+            print "### " check
             array_walk(arr[element], (name "[" element "]"), "mapper", check)
         } else if (element == "name") { 
             continue 
@@ -34,7 +35,7 @@ function array_walk(arr, name, map, command,    check) {
     }
 }
 
-$1 ~ /^command_line/ {  
+function parse_command(line) {
     cmd = $2
     for (i=3; i <= NF; i++) {
         # Match -X options
@@ -56,14 +57,7 @@ $1 ~ /^command_line/ {
                 opt = $i
             }
             split(opt, val, "=")
-            # Strip surrounding quotes (strings get quoted later)
-           #if (val[2] ~ /"[^"]*"/) {
-           #    arg[val[1]] = substr(val[2], 2, length(val[2]-1))
-           #} else { 
-           #    arg[val[1]] = val[2]
-           #}
             arg[val[1]] = val[2]
-        #(("[^"]+")|([^ ]+))$
         }
     }
     commands[cmd]["name"] = cmd
@@ -72,6 +66,10 @@ $1 ~ /^command_line/ {
         commands[cmd][x] = arg[x]
     }
     delete arg
+}
+
+$1 ~ /^command_line/ {  
+    parse_command($0)
     original[NR] = $0
 }
 
