@@ -12,6 +12,8 @@ function split_args(command) {
             start_check = 1
         } else if ($1 == "###" && $2 != check) {
             start_check = 0
+        } else if ($0 ~ /^$/ || $1 ~ /^\/\/|\/\*|\*/) {
+            continue
         }
         if (start_check == 1) { 
             switch($3) {
@@ -114,6 +116,7 @@ $1 ~ /^#/ { next }
 }
 
 END {
+    printf "// Found the following Hosts/Services in %s:\n", FILENAME
     print "object Host \"" hst_name "\" {"
     print "    import \"generic-host\""
     print "    address = \"" hst_addr "\""
@@ -133,5 +136,5 @@ END {
     for (i in original) {
         print " * " original[i]
     }
-    print " */\n}"
+    print " */\n}\n\n"
 }

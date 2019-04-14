@@ -74,7 +74,7 @@ $1 ~ /^command_line/ {
 }
 
 END {
-    printf "Commands from %s seem to be defined in this way: \n", FILENAME
+    printf "// Commands from %s seem to be defined in this way: \n", FILENAME
     array_walk(commands, "commands", "mapper")
     print "\n/* Original command definition(s): "
     for (line in original) { print " * " original[line] }
